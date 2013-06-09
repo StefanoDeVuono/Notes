@@ -1,0 +1,152 @@
+WEBrick is the server
+  request object
+  response object
+
+  mount proc('/') do |req, res|
+    p req # to print the request
+    res.body = "hello world"
+    # res.body = req.body
+    # res.body = res.path
+    res.contenttype = "text/text"
+    end
+
+    server.start
+
+  run like normal ruby script # /Users/stefanodevuono/Desktop/app_academy_thangs/rails_lite/test/00_server.rb
+  # in irb?
+
+  unlike rails, we have to reload server every time we change our code (ctrl-c)
+
+  we have no routes, controllers, views. so, ....
+  class ControllerBase
+    def initialize(req, res)
+      @req, @res = req, res
+      @already_rendered = false
+    end
+
+    private
+    def render_content(content, type)
+      return error if if @already_rendered
+      @res.body = ...
+      @res.content_type = ...
+    end
+
+    def render_to(url)
+      return error if @already_rendered
+
+    end
+  end
+
+  class HelloController < ControllerBase
+    def show
+      render_content "hello", "text/html"
+    end
+  end
+
+  mount proc('/') do |req, res|
+    HelloController.new(req, res).show
+  end
+
+  test/00server.rb # read the comments, his code will inherit from ours (ie: we write ControllerBase)
+
+  template files
+  Erb.new("<%= (0..4).to_a.join(',') %>")
+  template.result
+
+  2 different cats
+    Erb.new("<%= (0..4).to_a.join(',') %>")
+    cat = Cat.first # from db
+  This still won't work
+
+  def f
+    x = "xval"
+    y = "yval"
+  end
+  x # undefined, even if we run f first
+
+  def f
+    x = "xval"
+    y = "yval"
+    binding # creates a binding object, whose @vars = < x => "xval", y = "yval" >, must be returned
+  end
+  b = f
+  b.eval("x") # returns "xval"
+  b.eval("y") # returns "yval"
+  b.eval( x + y ) # doesn't work
+  b.eval( "x + y" ) # returns "xvalyval"
+
+  binding captures all variables in scope that have already been defined, including globals and supers
+
+  # what is an eval method?
+
+
+  class MyController
+    def show
+      @msg = "hello"
+      render :show
+    end
+
+    private
+    def render(template_name)
+      template = # read ERB file from disk
+      b = binding()
+      body = template.result(b)
+      render_content(body, "text/html")
+    end
+
+  Session
+  WEBrick::Cookie
+  name is not important (eg: "_stefano_s_cool_cookie")
+  value is stuff we actually store in the cookie stored as a string
+    jsonify { "session_token": "xyz" }
+    helper class
+    class Session
+      def initialize(req)
+        cookie = req.cookies.find { |c| c.name == "_stefano_s_cool_cookie" }
+        # in case server has multiple apps, we only set cookie for our app.
+        @data = jsonify(cookie.value) # unless value is nil
+      end
+
+      def [](key)
+        @data[key]
+      end
+
+      def []=(key, value)
+        ...
+      end
+
+      def save(res)
+        res.cookies << Cookie.new("stefano", @data-to-show) #changes cookie stuf
+        # we hard code the name for our server. eg: "stefano"
+      end
+    end
+
+Remember, cookies only sent to hostname that request is sent to (eg http://facebook only gets http://facebook's cookies). However if multiple apps on http://facebook, they all get those cookies.
+
+Class ControllerBase
+  def session
+    @session || = Session.new(@req)
+  end
+
+  def render(t_)
+    render_content
+    session.save(res)
+  end
+end
+Using the session in your controller
+
+MVC assessment: login, signup, cats: show cats for user, form to create cats
+ - rewrite 99cats
+ - rewrite musicapp
+Need to Know
+ - basic association stuff, class_name, foriegn_key, primary_key, through
+ - one has_many through
+ - View/Controller 2 controllers
+ - HTML Forms
+    text, submit, radio, select: type, id/for, name, value
+    auth token
+ - Basic Auth
+    users table with session token - securerandom
+    session controller > new, create, destroy action
+ - reading params
+ ... not so much form hacks: POST only, don't need helpers, partials, don't need bcrypt

@@ -1,0 +1,31 @@
+csrf
+ = Cross Site Request Forgery
+
+ Eg, I have a form that I have on my website that points to facebook
+  I claim it'll dislike me, but it'll actually send a like
+
+ It does something on someone else's website
+
+ To prevent this we have an authenticity token
+
+ input type hidden name authenticity-token value = fwuqpoh09384
+ input type submit
+
+ So a server that is hosting a site with a form that posts to another resource on the site does this:
+ A request to form
+ B server generates random token, stores in DB
+ C form returned
+ D user submits form POST to like
+ E server looks up token in DB - VERIFICATION!
+ F Throws out cookie if verification fails
+ * B ad E are done automatically by rails
+
+ If I go through my own form, I don't have auth token from server.
+ If user doesn't have to log in, it ain't no thang, but a chicken wang.
+ With a logged in user, no cookie means that my controllers post method would not trigger a like.
+
+ Doesn't actually store it's token in DB, rather generates it with a digital signature.
+
+put this in your form and now it works!
+ <input type="hidden" value="<% form_authenticity_token %>">
+the server will no longer delete your session
